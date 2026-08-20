@@ -1,0 +1,5 @@
+data/raw/*.csv
+dermacheck/
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
