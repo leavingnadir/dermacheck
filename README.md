@@ -20,12 +20,6 @@ comparison, honest evaluation) rather than to build a clinically accurate
 diagnostic tool. Given the weak signal in metadata alone, **modest
 performance is expected and is treated as an honest finding, not a failure.**
 
-> **Progress Review I scope:** This README currently reflects the Data
-> Preprocessing & EDA stage only (missing values → encoding → outlier
-> removal → scaling → feature engineering → feature selection). Modeling,
-> tuning, and evaluation (Section 6) are planned for Progress Review II and
-> are not yet implemented.
-
 ## 2. Problem Statement
 
 Teledermatology triage systems often only have basic intake information
@@ -46,34 +40,44 @@ informs how much weight such metadata should carry in a real triage pipeline.
 | Not used | `image_id`, lesion images (`HAM10000_images_part_1/2`) |
 | Citation | Tschandl, P., Rosendahl, C., & Kittler, H. (2018). *The HAM10000 dataset*. Harvard Dataverse. doi:10.7910/DVN/DBW86T |
 
-> The dataset is heavily imbalanced — roughly two-thirds of records are the
-> benign `nv` class.
+> The dataset is heavily imbalanced.
 
 ## 4. Repository Structure
 
 ```
 Group_ID/
 ├── README.md
+├── group_pipeline.ipynb              # PR1 — integrated preprocessing pipeline
+├── group_model_comparison.ipynb      # PR2 — combined model results comparison
 ├── data/
 │   ├── raw/
 │   └── external/
 ├── notebooks/
-│   ├── IT25101908_MissingValues.ipynb
-│   ├── IT25102853_Encoding.ipynb
-│   ├── IT25103722_OutlierRemoval.ipynb
-│   ├── IT25101857_Scaling.ipynb
-│   ├── IT25103708_FeatureEngineering.ipynb
-│   └── IT25100928_FeatureSelection.ipynb
-├── group_pipeline.ipynb
+│   ├── IT25101908_MissingValues.ipynb           # PR1
+│   ├── IT25102853_Encoding.ipynb                # PR1
+│   ├── IT25103722_OutlierRemoval.ipynb          # PR1
+│   ├── IT25101857_Scaling.ipynb                 # PR1
+│   ├── IT25103708_FeatureEngineering.ipynb      # PR1
+│   ├── IT25100928_FeatureSelection.ipynb        # PR1
+│   ├── IT25101908_LogisticRegression_Model.ipynb # PR2
+│   ├── IT25102853_SVM_Model.ipynb               # PR2
+│   ├── IT25103722_RandomForest_Model.ipynb      # PR2
+│   ├── IT25101857_KMeans_Model.ipynb            # PR2
+│   ├── IT25103708_PCA_Model.ipynb               # PR2
+│   └── IT25100928_MLP_Model.ipynb               # PR2
 └── results/
-    ├── eda_visualizations/
-    ├── logs/
-    └── outputs/
+    ├── eda_visualizations/       # PR1 charts (histograms, boxplots, heatmaps)
+    ├── model_visualizations/     # PR2 charts (confusion matrices, ROC, cluster/PCA plots)
+    ├── outputs/                  # PR1 final processed dataset / target
+    ├── model_outputs/            # PR2 per-member metrics (CSV)
+    └── logs/
 ```
 
-## 5. Setup & Installation
+## 5. Getting the Data & Running the Project
 
-Requirements: Anaconda (or Miniconda) and Python 3.10.
+**Data setup:** Download `HAM10000_metadata.csv` from [Kaggle](https://www.kaggle.com/datasets/kmader/skin-cancer-mnist-ham10000) and place it at `data/raw/HAM10000_metadata.csv`.
+
+**Setup environment:**
 
 ```bash
 # 1. Create and activate an isolated environment
@@ -87,33 +91,37 @@ pip install pandas numpy matplotlib seaborn scikit-learn imbalanced-learn jupyte
 jupyter notebook
 ```
 
-## 6. Getting the Data
+**Run order:**
 
-Download `HAM10000_metadata.csv` from Kaggle.
-Place it at `data/raw/HAM10000_metadata.csv`.
+1. **Read this README fully** before touching any code — it covers the goal, data, and folder layout.
+2. **Set up the environment** (above).
+3. **Preprocessing stage (PR1)** — open the six notebooks in `notebooks/`, in this order, to see each technique in isolation:
+   - `IT25101908_MissingValues.ipynb`
+   - `IT25102853_Encoding.ipynb`
+   - `IT25103722_OutlierRemoval.ipynb`
+   - `IT25101857_Scaling.ipynb`
+   - `IT25103708_FeatureEngineering.ipynb`
+   - `IT25100928_FeatureSelection.ipynb`
 
-## 7. How to Run — Step-by-Step Guide
+   Each is self-contained, loading the raw CSV independently and applying one technique with a written interpretation.
+4. **Run `group_pipeline.ipynb`** (project root) — the single integrated notebook chaining all six PR1 steps end-to-end (cleaning → EDA → feature engineering → feature selection). Only its first cell loads the raw CSV; every step after reads/modifies the same evolving `df`, since notebooks can't import one another. Running this top-to-bottom reproduces `results/outputs/final_processed_dataset.csv` and `final_target_y.csv` — the shared inputs for every model notebook that follows. Only the finished, working cell from each member's notebook is copied in; exploratory/debugging cells stay in the individual notebooks, which remain the record of who did what for PR1 marks.
+5. **Modeling stage (PR2)** — once the processed dataset exists, open the six model notebooks in `notebooks/`, each loading `final_processed_dataset.csv` + `final_target_y.csv` and training/tuning one model type independently:
+   - `IT25101908_LogisticRegression_Model.ipynb`
+   - `IT25102853_SVM_Model.ipynb`
+   - `IT25103722_RandomForest_Model.ipynb`
+   - `IT25101857_KMeans_Model.ipynb`
+   - `IT25103708_PCA_Model.ipynb`
+   - `IT25100928_MLP_Model.ipynb`
 
-For anyone opening this repository for the first time, follow this order:
+   Each saves its own chart(s) to `results/model_visualizations/` and its own metrics to `results/model_outputs/`.
+6. **Run `group_model_comparison.ipynb`** (project root) — the PR2 counterpart to `group_pipeline.ipynb`. It reads every member's `results/model_outputs/*.csv`, builds the combined comparison of all 6 optimum results, and adds the group's written discussion of challenges and performance. This notebook depends on every individual model notebook having been run first.
+7. **Check outputs** — `results/eda_visualizations/` for PR1 charts, `results/model_visualizations/` for PR2 charts, and `results/outputs/` / `results/model_outputs/` for processed data and metrics.
 
-1. Read this README fully — it explains the goal, the data, and the folder layout before you touch any code.
-2. Set up the environment (Section 5).
-3. Open the individual preprocessing notebooks in `notebooks/`, in this order, to see each technique in isolation:
-   - `IT25101908_MissingValues.ipynb` — handling missing age values
-   - `IT25102853_Encoding.ipynb` — encoding sex and localization
-   - `IT25103722_OutlierRemoval.ipynb` — detecting/removing unrealistic age values
-   - `IT25101857_Scaling.ipynb` — scaling age for distance-based models
-   - `IT25103708_FeatureEngineering.ipynb` — assembling the final feature matrix
-   - `IT25100928_FeatureSelection.ipynb` — reducing dimensionality of the final feature set
+## 6. How the Pipeline Is Assembled
 
-   Each notebook is self-contained and shows one contributor's technique with a written interpretation.
-4. Open `group_pipeline.ipynb` — this is the single integrated notebook that runs the entire preprocessing pipeline end-to-end (cleaning → EDA → feature engineering → feature selection). Run this top-to-bottom to reproduce the final processed dataset.
-5. Check `results/eda_visualizations/` for the saved charts referenced in the report, and `results/outputs/` for the final processed dataset / feature set.
+The notebooks in `notebooks/` are not automatically linked — Jupyter notebooks can't import one another the way Python modules can. Each one is self-contained on purpose, so each contributor's work can be marked in isolation. They connect in two ways, one for each stage:
 
-## 8. How the Pipeline Is Assembled
-
-The six notebooks in `notebooks/` are not automatically linked — Jupyter notebooks can't import one another the way Python modules can. Each one is self-contained on purpose, so each contributor's technique can be marked in isolation. They connect in two ways:
-
+**PR1 — Preprocessing:**
 1. Every individual notebook starts with its own copy of the Step 1 data-loading code (`pd.read_csv("data/raw/HAM10000_metadata.csv")` plus the initial `.shape` / `.info()` / `.head()` / `value_counts()` checks). Without this, a notebook has no `df` to work on, so it must load and inspect the raw CSV itself before applying its one technique.
 2. `group_pipeline.ipynb` is the single notebook where everything is chained together. Once every member's notebook works standalone, each finished code cell is copied — in the order below — into `group_pipeline.ipynb`, so the output dataframe of one step becomes the input to the next, forming one continuous run from raw CSV to final processed feature set.
 
@@ -128,12 +136,17 @@ Assembly order in `group_pipeline.ipynb`:
 7. Feature selection          ← IT25100928_FeatureSelection.ipynb
 ```
 
-Two rules that make the chaining actually work:
+**PR2 — Modeling:**
+1. Each individual model notebook starts by loading `results/outputs/final_processed_dataset.csv` and `final_target_y.csv` — the shared output of `group_pipeline.ipynb` — rather than the raw CSV. This is the one dependency between stages: PR2 notebooks cannot run until `group_pipeline.ipynb` has been run at least once.
+2. Each member's notebook is independent of the others (no shared `df` to chain, unlike PR1), since each trains and tunes its own model type in isolation and writes its results out to `results/model_outputs/` and `results/model_visualizations/`.
+3. `group_model_comparison.ipynb` is the integration point for PR2: it reads all six `results/model_outputs/*.csv` files, builds one combined comparison table/chart of the optimum result from each model, and adds the group's written discussion — the same collaborative role `group_pipeline.ipynb` plays for PR1.
 
-- Each step must run cleanly on the dataframe as produced by the step before it — so when copying a cell into the pipeline, remove any re-loading of the raw CSV (only the very first cell in the pipeline loads it) and make sure the code reads/modifies the same `df` the previous step left behind, not a fresh copy.
-- Only the final, working version of each person's cell goes into the pipeline — exploratory/debugging cells stay in the individual notebook. `group_pipeline.ipynb` is the notebook that should actually be run top-to-bottom to reproduce the project's processed dataset and charts. The individual notebooks are the record of who did what and why, for the Progress Review I individual marks. Assembling this combined notebook is a shared/group task rather than any one member's individual technique.
+Two rules that make both stages work:
 
-## 9. Preprocessing Techniques (by contributor)
+- Each step must run cleanly on the input produced by the step before it — so when copying a preprocessing cell into `group_pipeline.ipynb`, remove any re-loading of the raw CSV (only the very first cell loads it), and make sure PR2 notebooks load the *processed* CSVs, not the raw one.
+- Only the final, working version of each person's cell/notebook goes into the shared integration notebooks; exploratory/debugging cells stay in the individual notebooks, which remain the record of who did what for individual marks in both PR1 and PR2.
+
+## 7. Preprocessing Techniques (by contributor)
 
 | Notebook | Technique | Summary |
 |---|---|---|
@@ -144,34 +157,33 @@ Two rules that make the chaining actually work:
 | `IT25103708_FeatureEngineering.ipynb` | Feature assembly | Builds the final `X` feature matrix and encodes the `dx` target |
 | `IT25100928_FeatureSelection.ipynb` | Feature selection / dimensionality reduction | Removes low-variance and redundant (highly correlated) columns from the final feature matrix |
 
-## 10. Modeling & Evaluation Summary (Planned — Progress Review II)
+## 8. Modeling & Evaluation Summary (Progress Review II)
 
-> Not yet implemented. Documented here for planning purposes only.
+- **Class imbalance:** handled via `class_weight='balanced'` and/or SMOTE oversampling (training set only).
+- **Models trained (one per member):** Logistic Regression, SVM, Random Forest, K-Means, PCA, MLP — see Section 9 for owners.
+- **Tuning:** `GridSearchCV` or manual tuning per member, with at least two varieties compared per model (e.g. different hyperparameters, or with/without feature selection applied).
+- **Metrics reported:** accuracy, macro-F1, per-class recall (with particular attention to malignant classes `mel`, `bcc`, `akiec`), cross-validation, and confusion matrices, saved per member to `results/model_outputs/`.
+- **Baseline for comparison:** a model that always predicts `nv` scores ~67% accuracy but 0% recall on every malignant class — all trained models are judged against beating this on macro-F1 and malignant-class recall, not raw accuracy.
+- **Group comparison:** `group_model_comparison.ipynb` combines the optimum result from each member's model and discusses challenges and expected behavior as a group.
 
-- **Class imbalance:** to be handled via `class_weight='balanced'` and/or SMOTE oversampling (training set only).
-- **Models to compare:** Logistic Regression and Random Forest (baseline); SVM and Gradient Boosting (stronger).
-- **Tuning:** `GridSearchCV` on at least one model, optimizing macro-F1.
-- **Metrics to report:** accuracy, macro-F1, per-class recall (with particular attention to malignant classes `mel`, `bcc`, `akiec`), 5-fold stratified cross-validation, and confusion matrices.
-- **Baseline for comparison:** a model that always predicts `nv` scores ~67% accuracy but 0% recall on every malignant class — all trained models will be judged against beating this on macro-F1 and malignant-class recall, not raw accuracy.
+## 9. Team & Roles
 
-## 11. Team & Roles
+| Member | Student ID | PR1 Focus (Preprocessing) | PR2 Focus (Modeling) |
+|---|---|---|---|
+| Member 1 | IT25101908 | Missing value handling + age distribution EDA | Logistic Regression |
+| Member 2 | IT25102853 | Categorical encoding + class distribution EDA | SVM |
+| Member 3 | IT25103722 | Outlier detection/removal + boxplot EDA | Random Forest |
+| Member 4 | IT25101857 | Scaling/normalization + correlation heatmap EDA | K-Means Clustering |
+| Member 5 | IT25103708 | Feature engineering + final X/y assembly | PCA |
+| Member 6 | IT25100928 | Feature selection/dimensionality reduction + correlation heatmap EDA | MLP (Deep Learning) |
 
-| Member | Student ID | Focus (Progress Review I) |
-|---|---|---|
-| Member 1 | IT25101908 | Missing value handling + age distribution EDA |
-| Member 2 | IT25102853 | Categorical encoding + class distribution EDA |
-| Member 3 | IT25103722 | Outlier detection/removal + boxplot EDA |
-| Member 4 | IT25101857 | Scaling/normalization + correlation heatmap EDA |
-| Member 5 | IT25103708 | Feature engineering + final X/y assembly |
-| Member 6 | IT25100928 | Feature selection/dimensionality reduction + correlation heatmap EDA |
-
-## 12. AI Tool Usage Declaration
+## 10. AI Tool Usage Declaration
 
 | Tool & version | Aspect supported | Extent of use | How verified/owned |
 |---|---|---|---|
 | *Claude Sonnet* | *project scaffolding, code structure guidance* | *Moderate* | *All code run and checked against notebook output; results recalculated manually* |
 
-## 13. References
+## 11. References
 
 - Tschandl, P., Rosendahl, C., & Kittler, H. (2018). *The HAM10000 dataset, a large collection of multi-source dermatoscopic images of common pigmented skin lesions.* Harvard Dataverse. https://doi.org/10.7910/DVN/DBW86T
 - Kaggle dataset page: https://www.kaggle.com/datasets/kmader/skin-cancer-mnist-ham10000
