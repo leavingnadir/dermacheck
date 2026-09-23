@@ -1,0 +1,7 @@
+member,model_type,variety,accuracy,macro_f1
+IT25103722,Random Forest,Baseline,0.707938092860709,0.2478786125623264
+IT25102853,SVM,GridSearchCV tuned (after selection),0.3315027458811782,0.210173306178995
+IT25101908,Logistic Regression,Baseline,0.6949575636545182,0.2020354364340228
+IT25103708,PCA + Logistic Regression,PCA n_components=7 (90% variance),0.2291562656015976,0.1737124651907085
+IT25100928,MLP (Deep Learning),"Larger MLP (2 hidden layers, 32+16 units)",0.2341487768347478,0.1683664837584148
+IT25101857,K-Means Clustering,k=10 (best silhouette),,

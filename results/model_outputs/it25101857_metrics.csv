@@ -1,0 +1,2 @@
+variety,silhouette,ARI_vs_true_dx,NMI_vs_true_dx,member,model_type,macro_f1,accuracy
+k=10 (best silhouette),0.31825326164327145,0.03828394735759094,0.10996932581163012,IT25101857,K-Means Clustering,,

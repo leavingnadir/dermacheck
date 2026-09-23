@@ -1,0 +1,2 @@
+variety,accuracy,macro_f1,weighted_f1,member,model_type
+Baseline,0.707938092860709,0.2478786125623264,0.6450761152038017,IT25103722,Random Forest

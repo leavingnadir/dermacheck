@@ -1,0 +1,2 @@
+variety,n_components,variance_explained,accuracy,macro_f1,member,model_type
+PCA n_components=7 (90% variance),7,0.9314961891531177,0.2291562656015976,0.17371246519070851,IT25103708,PCA + Logistic Regression

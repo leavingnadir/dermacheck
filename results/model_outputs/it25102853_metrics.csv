@@ -1,0 +1,2 @@
+variety,accuracy,macro_f1,weighted_f1,member,model_type
+GridSearchCV tuned (after selection),0.33150274588117823,0.21017330617899507,0.4143302315991523,IT25102853,SVM

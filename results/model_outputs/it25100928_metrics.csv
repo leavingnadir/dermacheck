@@ -1,0 +1,2 @@
+variety,accuracy,macro_f1,weighted_f1,member,model_type
+"Larger MLP (2 hidden layers, 32+16 units)",0.23414877683474788,0.16836648375841481,0.3027819510553745,IT25100928,MLP (Deep Learning)

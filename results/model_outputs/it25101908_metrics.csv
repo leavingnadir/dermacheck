@@ -1,0 +1,2 @@
+variety,accuracy,macro_f1,weighted_f1,member,model_type
+Baseline,0.6949575636545182,0.2020354364340228,0.6202004085614451,IT25101908,Logistic Regression
